@@ -6,6 +6,7 @@ local Mouse = LocalPlayer:GetMouse()
 local HttpService = game:GetService("HttpService")
 
 local OrionLib = {
+    SearchRegistry = {}
 	Elements = {},
 	ThemeObjects = {},
 	Connections = {},
@@ -742,16 +743,55 @@ function OrionLib:MakeWindow(WindowConfig)
 			TabFrame.Ico.Image = GetIcon(TabConfig.Icon)
 		end	
 
-		local Container = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255, 255, 255), 5), {
-			Size = UDim2.new(1, -150, 1, -50),
-			Position = UDim2.new(0, 150, 0, 50),
-			Parent = MainWindow,
-			Visible = false,
-			Name = "ItemContainer"
-		}), {
-			MakeElement("List", 0, 6),
-			MakeElement("Padding", 15, 10, 10, 15)
-		}), "Divider")
+	local Container = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255, 255, 255), 5), {
+		Size = UDim2.new(1, -150, 1, -50),
+		Position = UDim2.new(0, 150, 0, 50),
+		Parent = MainWindow,
+		Visible = false,
+		Name = "ItemContainer"
+	}), {
+		MakeElement("List", 0, 6),
+		MakeElement("Padding", 15, 10, 10, 15)
+	}), "Divider")
+
+	local SearchElements = {}
+
+	local SearchBox = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255), 0, 8), {
+		Size = UDim2.new(1, -20, 0, 36),
+		Parent = Container
+	}), {
+		AddThemeObject(MakeElement("Stroke"), "Stroke"),
+		SetProps(Create("TextBox", {
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, -20, 1, 0),
+			Position = UDim2.new(0, 10, 0, 0),
+			PlaceholderText = "Search...",
+			ClearTextOnFocus = false,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Font = Enum.Font.Gotham,
+			TextSize = 14
+		}), {})
+	}), "Second")
+
+	local Input = SearchBox:FindFirstChildOfClass("TextBox")
+
+	local function RegisterSearch(Element, Name)
+		table.insert(SearchElements, {
+			Object = Element,
+			Name = string.lower(Name)
+		})
+	end
+
+	Input:GetPropertyChangedSignal("Text"):Connect(function()
+		local txt = string.lower(Input.Text)
+		for _,v in pairs(SearchElements) do
+			if txt == "" or string.find(v.Name, txt, 1, true) then
+				v.Object.Visible = true
+			else
+				v.Object.Visible = false
+			end
+		end
+	end)
 
 		AddConnection(Container.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
 			Container.CanvasSize = UDim2.new(0, 0, 0, Container.UIListLayout.AbsoluteContentSize.Y + 30)
